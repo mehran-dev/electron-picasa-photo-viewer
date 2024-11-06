@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, desktopCapturer, screen } from 'electron'
 import path, { join } from 'path'
 import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -11,6 +11,8 @@ function createWindow(): void {
     width: 900,
     height: 670,
     show: false,
+    // frame: false, // This will remove the default OS frame, which can sometimes create unexpected padding
+
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -35,6 +37,22 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+  mainWindow.on('enter-full-screen', () => {
+    mainWindow.webContents.send('enter-full-screen') // Send a signal to renderer
+  })
+
+  mainWindow.on('leave-full-screen', () => {
+    mainWindow.webContents.send('leave-full-screen') // Send a signal to renderer
+  })
+  mainWindow.on('maximize', () => {
+    mainWindow.webContents.send('enter-maximized')
+    mainWindow.webContents.send('enter-full-screen') // Send a signal to renderer
+  })
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow.webContents.send('leave-maximized')
+    mainWindow.webContents.send('leave-full-screen') // Send a signal to renderer
+  })
 }
 
 // This method will be called when Electron has finished
@@ -43,7 +61,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
-
+  // captureScreen()
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.
   // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
@@ -121,3 +139,116 @@ ipcMain.handle('load-images', async (_event, directoryPath) => {
     return []
   }
 })
+
+// function captureScreen() {
+//   desktopCapturer
+//     .getSources({ types: ['screen'] })
+//     .then((sources) => {
+//       for (const source of sources) {
+//         if (source.name === 'Screen 1') {
+//           // or choose your screen
+//           const image = source.thumbnail.toDataURL()
+//           // Send this image to renderer process
+//           mainWindow.webContents.send('screen-captured', image)
+//         }
+//       }
+//     })
+//     .catch((err) => console.error('Failed to capture screen:', err))
+// }
+
+// Capture the screen when requested
+/* ipcMain.handle('capture-screen', async () => {
+  const sources = await desktopCapturer.getSources({ types: ['screen'] })
+  for (const source of sources) {
+    if (source.name === 'Screen 1') {
+      // You can choose the screen you need
+      const image = source.thumbnail.toDataURL() // Capture the image as Data URL
+      return image
+    }
+  }
+  return null
+}) */
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+function getActiveScreen() {
+  // Get the current mouse position
+  const cursorPoint = screen.getCursorScreenPoint()
+
+  // Find the screen (display) that the cursor is on
+  const activeDisplay = screen.getDisplayNearestPoint(cursorPoint)
+
+  if (activeDisplay) {
+    // console.log('Active screen:', activeDisplay)
+    return activeDisplay
+  } else {
+    console.log('No active screen found.')
+    return null
+  }
+}
+ipcMain.handle('capture-screen', async () => {
+  const { width, height } = screen.getPrimaryDisplay().size
+  // Get the ID of the current window
+
+  // Get the current window bounds
+  const windowBounds = mainWindow.getBounds()
+
+  // Find which display the window is on
+  const displays = screen.getAllDisplays()
+
+  const monitor = getMonitorForWindow(mainWindow)
+  console.log('Monitor for window:', monitor)
+
+  await mainWindow.hide()
+  await delay(1200)
+
+  const sources = await desktopCapturer.getSources({
+    types: ['screen'],
+    thumbnailSize: { height, width }
+  })
+  console.log(sources.length)
+
+  let screenSource = sources[0]
+  // console.log('targetDisplay', targetDisplay)
+
+  for (let source of sources) {
+    console.log('source.display_id', source.display_id, monitor.id)
+    if (String(source.display_id) === String(monitor.id)) {
+      screenSource = source
+      break
+    }
+  }
+  if (!screenSource) {
+    console.error('No matching screen found')
+    return null
+  }
+
+  // Return the base64 image of the current window
+  mainWindow.show()
+  return screenSource.thumbnail.toDataURL()
+})
+
+// Function to get the monitor of a specific window
+function getMonitorForWindow(mainWindow) {
+  // Get the window's position (x, y)
+  const windowBounds = mainWindow.getBounds()
+
+  // Get all connected displays
+  const displays = screen.getAllDisplays()
+
+  // Loop through the displays to find the one that the window is on
+  for (const display of displays) {
+    const { x, y, width, height } = display.bounds
+
+    // Check if the window's top-left corner (x, y) is within the display bounds
+    if (
+      windowBounds.x >= x &&
+      windowBounds.x <= x + width &&
+      windowBounds.y >= y &&
+      windowBounds.y <= y + height
+    ) {
+      return display // This is the monitor the window is on
+    }
+  }
+
+  return null // If no matching display is found (should not happen in most cases)
+}

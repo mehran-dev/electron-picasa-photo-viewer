@@ -40,8 +40,43 @@ const App = () => {
     // Clean up the listener when the component unmounts
     return () => {}
   }, [])
+
+  useEffect(() => {
+    // window.api.captureScreen().then((imageData) => {
+    //   if (imageData) {
+    //     // Set the background of the page
+    //     const backgroundElement = document.getElementById('background')
+    //     if (backgroundElement) {
+    //       backgroundElement.style.backgroundImage = `url(${imageData})`
+    //     }
+    //   }
+    // })
+    return () => {}
+  }, [])
+
+  window.api.onEnterFullScreen(() => {
+    console.log('entered')
+    window.api.captureScreen().then((imageData) => {
+      const backgroundElement = document.getElementById('background')
+      if (backgroundElement) {
+        backgroundElement.style.backgroundImage = `url(${imageData})`
+      }
+      // document.body.style.backgroundImage = `url(${imageData})` // Use the captured screen as background
+      // document.body.style.backgroundSize = 'cover'
+      // document.body.style.backgroundPosition = 'center center'
+      // document.body.style.transition = 'background-image 0.3s ease'
+    })
+  })
+
+  window.api.onLeaveFullScreen(() => {
+    console.log('leaved')
+
+    document.body.style.backgroundImage = '' // Clear background when exiting full-screen
+  })
   return (
     <div className="App">
+      <div id="background"></div>
+      <div id="background-overlay"></div>
       <h1>Photo Viewer</h1>
       <button onClick={openDirectory}>Open Folder</button>
       {/* {images.length > 0 && images.map((image: any) => <img src={image.src} key={image} />)} */}

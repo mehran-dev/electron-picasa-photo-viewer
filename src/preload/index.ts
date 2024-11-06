@@ -5,7 +5,10 @@ import { electronAPI } from '@electron-toolkit/preload'
 const api: any = {
   openDirectory: () => ipcRenderer.invoke('open-directory'),
   loadImages: (directoryPath) => ipcRenderer.invoke('load-images', directoryPath),
-  onInitImages: (callback) => ipcRenderer.on('init-path', callback)
+  onInitImages: (callback) => ipcRenderer.on('init-path', callback),
+  captureScreen: () => ipcRenderer.invoke('capture-screen'), // Invoke the capture-screen handler in main process
+  onEnterFullScreen: (callback) => ipcRenderer.on('enter-full-screen', callback),
+  onLeaveFullScreen: (callback) => ipcRenderer.on('leave-full-screen', callback)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
