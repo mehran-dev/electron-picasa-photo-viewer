@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import './App.css'
 import Gallery from 'react-photo-gallery'
 
@@ -19,7 +19,27 @@ const App = () => {
     }
   }
   console.log(images)
+  useEffect(() => {
+    // Listen for 'init-images' event from the main process
+    window.api.onInitImages(async (_event, imagePath) => {
+      console.log('Received image paths:', imagePath)
+      if (imagePath) {
+        const images = await window.api.loadImages(imagePath)
 
+        // Convert each image buffer to an object URL for display
+        const imageUrls = images.map((image) => {
+          return { src: `data:image/jpeg;base64,${image.data}`, width: 4, height: 4 }
+        })
+
+        setImages(imageUrls)
+      }
+
+      //setImages(imagePaths) // Update state with the image paths
+    })
+
+    // Clean up the listener when the component unmounts
+    return () => {}
+  }, [])
   return (
     <div className="App">
       <h1>Photo Viewer</h1>

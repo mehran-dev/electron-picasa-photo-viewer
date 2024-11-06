@@ -1,5 +1,5 @@
 {
-  "name": "picasa-viewer",
+  "name": "picasa-viewer-mine-xxx",
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -12,7 +12,8 @@
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "start": "electron-vite preview",
-    "dev": "electron-vite dev",
+    "dev": "electron-vite dev ",
+    "dev:with:path": " electron-vite dev -- -- /home/mehransaghebifard/Desktop/590981771.jpg",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
@@ -44,5 +45,20 @@
     "react-dom": "^18.3.1",
     "typescript": "^5.5.2",
     "vite": "^5.3.1"
+  },
+  "build": {
+    "appId": "com.my-picasa.id",
+    "fileAssociations": [
+      {
+        "ext": "jpg",
+        "name": "Image",
+        "role": "Viewer"
+      },
+      {
+        "ext": "png",
+        "name": "Image",
+        "role": "Viewer"
+      }
+    ]
   }
 }

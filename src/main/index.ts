@@ -4,9 +4,10 @@ import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+let mainWindow
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -55,6 +56,22 @@ app.whenReady().then(() => {
 
   createWindow()
 
+  console.log('process.argv[1]', process.argv[1])
+  console.log('process.argv', process.argv)
+
+  // Handle opening a file
+  if (process.argv.length > 1) {
+    // const filePath = process.argv[1] // Get the file path passed from the OS
+    const filePath = process.env.NODE_ENV === 'development' ? process.argv[2] : process.argv[1]
+
+    // Extract the directory path
+    const directoryPath = path.dirname(filePath)
+    mainWindow.webContents.on('did-finish-load', () => {
+      console.log('before send')
+
+      mainWindow.webContents.send('init-path', directoryPath) // Send file path to renderer
+    })
+  }
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
@@ -82,40 +99,11 @@ ipcMain.handle('open-directory', async () => {
 })
 
 // Handle loading images from a directory
-ipcMain.handle('load-images--legacy', async (event, directoryPath) => {
+
+ipcMain.handle('load-images', async (_event, directoryPath) => {
   try {
-    const files = fs.readdirSync(directoryPath)
-    const imageFiles = files
-      .filter((file) => /\.(jpg|jpeg|png|gif)$/i.test(file))
-      .map((file) => path.join(directoryPath, file))
+    console.log('directoryPath', directoryPath)
 
-    return imageFiles
-  } catch (error) {
-    console.error('Error loading images:', error)
-    return []
-  }
-})
-
-// ipcMain.handle('load-images', async (event, directoryPath) => {
-//   try {
-//     const files = fs.readdirSync(directoryPath)
-
-//     const imageFiles = files
-//       .filter((file) => /\.(jpg|jpeg|png|gif)$/i.test(file))
-//       .map((file) => {
-//         const filePath = path.join(directoryPath, file)
-//         const imageBuffer = fs.readFileSync(filePath) // Read image as Buffer
-//         return { name: file, data: imageBuffer } // Return the image name and buffer
-//       })
-
-//     return imageFiles
-//   } catch (error) {
-//     console.error('Error loading images:', error)
-//     return []
-//   }
-// })
-ipcMain.handle('load-images', async (event, directoryPath) => {
-  try {
     const files = fs.readdirSync(directoryPath)
 
     const imageFiles = files
