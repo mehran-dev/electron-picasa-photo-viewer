@@ -169,7 +169,7 @@ ipcMain.handle('load-images', async (_event, directoryPath) => {
   return null
 }) */
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
+// @ts-ignore
 function getActiveScreen() {
   // Get the current mouse position
   const cursorPoint = screen.getCursorScreenPoint()
@@ -190,9 +190,11 @@ ipcMain.handle('capture-screen', async () => {
   // Get the ID of the current window
 
   // Get the current window bounds
+  // @ts-ignore
   const windowBounds = mainWindow.getBounds()
 
   // Find which display the window is on
+  // @ts-ignore
   const displays = screen.getAllDisplays()
 
   const monitor = getMonitorForWindow(mainWindow)
