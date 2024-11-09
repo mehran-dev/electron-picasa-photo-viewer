@@ -1,5 +1,5 @@
 {
-  "name": "picasa-viewer-mine-xxx",
+  "name": "picasa-viewer-mine-done-by-me",
   "version": "1.0.0",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
@@ -17,7 +17,7 @@
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps",
     "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
+    "build:win": "USE_SYSTEM_NSIS=true npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux"
   },
@@ -36,7 +36,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "electron": "^31.0.2",
-    "electron-builder": "^24.13.3",
+    "electron-builder": "^23.6.0",
     "electron-vite": "^2.3.0",
     "eslint": "^8.57.0",
     "eslint-plugin-react": "^7.34.3",
@@ -47,7 +47,16 @@
     "vite": "^5.3.1"
   },
   "build": {
-    "appId": "com.my-picasa.id",
+    "appId": "com.my-picasa-123458742145688.id",
+    "win": {
+      "target": {
+        "target": "nsis",
+        "arch": [
+          "x64"
+        ]
+      },
+      "compression": "store"
+    },
     "fileAssociations": [
       {
         "ext": "jpg",
