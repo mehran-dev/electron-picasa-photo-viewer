@@ -213,8 +213,8 @@ ipcMain.handle('capture-screen', async () => {
   // console.log('targetDisplay', targetDisplay)
 
   for (let source of sources) {
-    console.log('source.display_id', source.display_id, monitor.id)
-    if (String(source.display_id) === String(monitor.id)) {
+    console.log('source.display_id', source.display_id, monitor?.id)
+    if (String(source.display_id) === String(monitor?.id)) {
       screenSource = source
       break
     }
