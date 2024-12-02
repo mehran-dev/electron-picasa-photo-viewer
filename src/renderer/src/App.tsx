@@ -77,14 +77,19 @@ const App = () => {
     <div className="App">
       <div id="background"></div>
       <div id="background-overlay"></div>
-      <h1 className="bg-red-500">Photo Viewer</h1>
-      <button className="border border-solid rounded-sm " onClick={openDirectory}>
-        Open Folder
-      </button>
-      <div className="imageContainer">
+
+      {!images.length && (
+        <>
+          <h1 className="bg-red-500">Photo Viewer</h1>
+          <button className="border border-solid rounded-sm " onClick={openDirectory}>
+            Open Folder
+          </button>
+        </>
+      )}
+      <div className="flex justify-center items-center overflow-auto fixed bottom-0 right-0 left-0 cursor-pointer">
         {images.length > 0 &&
           images.map((image: any) => (
-            <img alt="" className="imageItem" src={image.src} key={image} />
+            <img alt="" className="w-[60px] h-[60px] mx-3 my-2" src={image.src} key={image} />
           ))}
       </div>
       {/* {images.length > 0 && <Gallery columns={6} margin={10} photos={images} />} */}
