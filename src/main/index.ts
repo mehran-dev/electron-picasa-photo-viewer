@@ -140,34 +140,6 @@ ipcMain.handle('load-images', async (_event, directoryPath) => {
   }
 })
 
-// function captureScreen() {
-//   desktopCapturer
-//     .getSources({ types: ['screen'] })
-//     .then((sources) => {
-//       for (const source of sources) {
-//         if (source.name === 'Screen 1') {
-//           // or choose your screen
-//           const image = source.thumbnail.toDataURL()
-//           // Send this image to renderer process
-//           mainWindow.webContents.send('screen-captured', image)
-//         }
-//       }
-//     })
-//     .catch((err) => console.error('Failed to capture screen:', err))
-// }
-
-// Capture the screen when requested
-/* ipcMain.handle('capture-screen', async () => {
-  const sources = await desktopCapturer.getSources({ types: ['screen'] })
-  for (const source of sources) {
-    if (source.name === 'Screen 1') {
-      // You can choose the screen you need
-      const image = source.thumbnail.toDataURL() // Capture the image as Data URL
-      return image
-    }
-  }
-  return null
-}) */
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 // @ts-ignore
 function getActiveScreen() {
@@ -185,7 +157,55 @@ function getActiveScreen() {
     return null
   }
 }
+
+async function getScreenNumber(mainWindow: Electron.BrowserWindow) {
+  const windowBounds = mainWindow.getBounds()
+
+  // Get the center of the window
+  const windowCenter = {
+    x: windowBounds.x + windowBounds.width / 2,
+    y: windowBounds.y + windowBounds.height / 2
+  }
+
+  // Get the display nearest to the window center
+  const nearestDisplay = screen.getDisplayNearestPoint(windowCenter)
+  console.log('====================================')
+  console.log('nearestDisplay', nearestDisplay)
+  console.log('====================================')
+  // Get all sources
+  const sources = await desktopCapturer.getSources({
+    types: ['screen'],
+    thumbnailSize: { width: 1920, height: 1080 } // Adjust this size as needed
+  })
+
+  // Match the display to the source
+  const displayIndex = screen
+    .getAllDisplays()
+    .findIndex((display) => display.id === nearestDisplay.id)
+
+  if (displayIndex !== -1) {
+    console.log(`Screen ${displayIndex + 1} is nearest to the window.`)
+    const matchingSource = sources[displayIndex]
+    if (matchingSource) {
+      console.log('Matching Source:', matchingSource)
+      return matchingSource
+    } else {
+      console.error('No matching source found for the screen.')
+    }
+  } else {
+    console.error('Could not determine the nearest screen.')
+  }
+}
+
 ipcMain.handle('capture-screen', async () => {
+  await mainWindow.hide()
+  await delay(1200)
+  const x = getScreenNumber(mainWindow)
+
+  await mainWindow.show()
+  return (await x).thumbnail.toDataURL()
+})
+ipcMain.handle('capture-screen--legacy', async () => {
   const { width, height } = screen.getPrimaryDisplay().size
   // Get the ID of the current window
 
@@ -198,7 +218,7 @@ ipcMain.handle('capture-screen', async () => {
   const displays = screen.getAllDisplays()
 
   const monitor = getMonitorForWindow(mainWindow)
-  console.log('Monitor for window:', monitor)
+  // console.log('Monitor for window:', monitor)
 
   await mainWindow.hide()
   await delay(1200)
@@ -253,4 +273,17 @@ function getMonitorForWindow(mainWindow) {
   }
 
   return null // If no matching display is found (should not happen in most cases)
+}
+
+const getWindowDisplay = (windowBounds: Electron.Rectangle) => {
+  const displays = screen.getAllDisplays()
+  return displays.find((display) => {
+    const { bounds } = display
+    return (
+      windowBounds.x >= bounds.x &&
+      windowBounds.x < bounds.x + bounds.width &&
+      windowBounds.y >= bounds.y &&
+      windowBounds.y < bounds.y + bounds.height
+    )
+  })
 }
