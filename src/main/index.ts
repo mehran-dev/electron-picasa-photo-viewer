@@ -199,11 +199,11 @@ async function getScreenNumber(mainWindow: Electron.BrowserWindow) {
 
 ipcMain.handle('capture-screen', async () => {
   await mainWindow.hide()
-  await delay(1200)
-  const x = getScreenNumber(mainWindow)
+  await delay(600)
+  const x = await getScreenNumber(mainWindow)
 
   await mainWindow.show()
-  return (await x).thumbnail.toDataURL()
+  return x.thumbnail.toDataURL()
 })
 ipcMain.handle('capture-screen--legacy', async () => {
   const { width, height } = screen.getPrimaryDisplay().size
