@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import './App.css'
-import Gallery from 'react-photo-gallery'
+// import Gallery from 'react-photo-gallery'
 
 const App = () => {
   const [images, setImages] = useState([])
@@ -12,7 +12,7 @@ const App = () => {
 
       // Convert each image buffer to an object URL for display
       const imageUrls = images.map((image) => {
-        return { src: `data:image/jpeg;base64,${image.data}`, width: 4, height: 4 }
+        return { src: `data:image/jpeg;base64,${image.data}` }
       })
 
       setImages(imageUrls)
@@ -28,7 +28,7 @@ const App = () => {
 
         // Convert each image buffer to an object URL for display
         const imageUrls = images.map((image) => {
-          return { src: `data:image/jpeg;base64,${image.data}`, width: 4, height: 4 }
+          return { src: `data:image/jpeg;base64,${image.data}` }
         })
 
         setImages(imageUrls)
@@ -77,10 +77,17 @@ const App = () => {
     <div className="App">
       <div id="background"></div>
       <div id="background-overlay"></div>
-      <h1>Photo Viewer</h1>
-      <button onClick={openDirectory}>Open Folder</button>
-      {/* {images.length > 0 && images.map((image: any) => <img src={image.src} key={image} />)} */}
-      {images.length > 0 && <Gallery columns={6} margin={10} photos={images} />}
+      <h1 className="bg-red-500">Photo Viewer</h1>
+      <button className="border border-solid rounded-sm " onClick={openDirectory}>
+        Open Folder
+      </button>
+      <div className="imageContainer">
+        {images.length > 0 &&
+          images.map((image: any) => (
+            <img alt="" className="imageItem" src={image.src} key={image} />
+          ))}
+      </div>
+      {/* {images.length > 0 && <Gallery columns={6} margin={10} photos={images} />} */}
     </div>
   )
 }
