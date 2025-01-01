@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import './App.css'
-// import Gallery from 'react-photo-gallery'
 
 const App = () => {
   const [images, setImages] = useState([])
+  const [bannerImages, setBannerImages] = useState([])
 
   const openDirectory = async () => {
     const directoryPath = await window.api.openDirectory()
@@ -16,9 +16,10 @@ const App = () => {
       })
 
       setImages(imageUrls)
+      setBannerImages([imageUrls[0]])
     }
   }
-  console.log(images)
+
   useEffect(() => {
     // Listen for 'init-images' event from the main process
     window.api.onInitImages(async (_event, imagePath) => {
@@ -33,24 +34,8 @@ const App = () => {
 
         setImages(imageUrls)
       }
-
-      //setImages(imagePaths) // Update state with the image paths
     })
 
-    // Clean up the listener when the component unmounts
-    return () => {}
-  }, [])
-
-  useEffect(() => {
-    // window.api.captureScreen().then((imageData) => {
-    //   if (imageData) {
-    //     // Set the background of the page
-    //     const backgroundElement = document.getElementById('background')
-    //     if (backgroundElement) {
-    //       backgroundElement.style.backgroundImage = `url(${imageData})`
-    //     }
-    //   }
-    // })
     return () => {}
   }, [])
 
@@ -61,22 +46,27 @@ const App = () => {
       if (backgroundElement) {
         backgroundElement.style.backgroundImage = `url(${imageData})`
       }
-      // document.body.style.backgroundImage = `url(${imageData})` // Use the captured screen as background
-      // document.body.style.backgroundSize = 'cover'
-      // document.body.style.backgroundPosition = 'center center'
-      // document.body.style.transition = 'background-image 0.3s ease'
     })
   })
 
   window.api.onLeaveFullScreen(() => {
     console.log('leaved')
-
+    const backgroundElement = document.getElementById('background')
+    backgroundElement.style.backgroundImage = ''
     document.body.style.backgroundImage = '' // Clear background when exiting full-screen
   })
   return (
     <div className="App">
       <div id="background"></div>
       <div id="background-overlay"></div>
+
+      {bannerImages.map((img, index) => {
+        return (
+          <div className="w-full " key={index}>
+            <img src={img.src} alt={index.toString()} />
+          </div>
+        )
+      })}
 
       {!images.length && (
         <>
@@ -86,13 +76,26 @@ const App = () => {
           </button>
         </>
       )}
-      <div className="flex justify-center items-center overflow-auto fixed bottom-0 right-0 left-0 cursor-pointer">
+      <div
+        className="flex justify-center items-center overflow-auto fixed bottom-0 right-0 left-0 cursor-pointer  "
+        style={{
+          background: '#3333'
+        }}
+      >
         {images.length > 0 &&
           images.map((image: any) => (
-            <img alt="" className="w-[60px] h-[60px] mx-3 my-2" src={image.src} key={image} />
+            <img
+              role="none"
+              alt=""
+              className="w-[60px] h-[60px] mx-3 my-2 rounded-md"
+              src={image.src}
+              key={image}
+              onClick={() => {
+                setBannerImages([image])
+              }}
+            />
           ))}
       </div>
-      {/* {images.length > 0 && <Gallery columns={6} margin={10} photos={images} />} */}
     </div>
   )
 }

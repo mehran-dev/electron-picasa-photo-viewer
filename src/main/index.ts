@@ -221,7 +221,7 @@ ipcMain.handle('capture-screen--legacy', async () => {
   // console.log('Monitor for window:', monitor)
 
   await mainWindow.hide()
-  await delay(1200)
+  await delay(800)
 
   const sources = await desktopCapturer.getSources({
     types: ['screen'],
